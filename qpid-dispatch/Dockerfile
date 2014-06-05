@@ -32,5 +32,7 @@ RUN chmod +x /start.sh
 ADD qdweb.css /var/www/html/css/qdweb.css
 ADD qdweb.py /var/www/cgi-bin/qdweb.py
 RUN chmod +x /var/www/cgi-bin/qdweb.py
+EXPOSE 5672
+EXPOSE 80
 CMD /start.sh
 
