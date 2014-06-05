@@ -106,7 +106,6 @@ def qdw_menu():
     print '    <a href="qdweb.py">Main Page</a>&nbsp;'
     print '    <a href="qdweb.py?view=CONN">Connections</a>&nbsp;'
     print '    <a href="qdweb.py?view=LINK">Links</a>&nbsp;'
-    print '    <a href="qdweb.py?view=NODE">Nodes</a>&nbsp;'
     print '    <a href="qdweb.py?view=ADDRESS">Addresses</a>&nbsp;'
     print '    <a href="qdweb.py?view=MEMORY">Memory</a>&nbsp;'
     print '  </td></tr>'
@@ -125,17 +124,7 @@ def addr_class(addr):
 def addr_text(addr):
     if not addr:
         return "-"
-    if addr[0] == 'M':
-        return addr[2:]
-    else:
-        return addr[1:]
-
-def addr_phase(addr):
-    if not addr:
-        return "-"
-    if addr[0] == 'M':
-        return addr[1]
-    return ''
+    return addr[1:]
 
 
 class GeneralPage:
@@ -150,10 +139,10 @@ class GeneralPage:
         rows = []
         rows.append(["Mode", data.mode])
         rows.append(["Area", data.area])
-        rows.append(["Router ID", data.name])
-        rows.append(["Address Count", data.addrCount])
-        rows.append(["Link Count", data.linkCount])
-        rows.append(["Node Count", data.nodeCount])
+        rows.append(["Router ID", data.router_id])
+        rows.append(["Address Count", data.addr_count])
+        rows.append(["Link Count", data.link_count])
+        rows.append(["Node Count", data.node_count])
         qdw_table(rows, caption="Router Information")
         print '<hr width="85%"><p />'
 
@@ -207,84 +196,23 @@ class LinkPage:
         hdr.append(Header("rindex"))
         hdr.append(Header("class"))
         hdr.append(Header("addr"))
-        hdr.append(Header("phase"))
-        hdr.append(Header("event-fifo"))
-        hdr.append(Header("msg-fifo"))
 
         data = self.router.GetObject('org.apache.qpid.dispatch.router.link')
         rows = []
 
         for link in data:
             row = []
-            row.append(link.linkType)
-            row.append(link.linkDir)
-            if link.linkType == "inter-router":
-                row.append(link.name)
+            row.append(link.link_type)
+            row.append(link.link_dir)
+            if link.link_type == "inter-router":
+                row.append(link.index)
             else:
                 row.append('-')
-            row.append(addr_class(link.owningAddr))
-            row.append(addr_text(link.owningAddr))
-            row.append(addr_phase(link.owningAddr))
-            row.append(link.eventFifoDepth)
-            if link.linkDir == 'out':
-                row.append(link.msgFifoDepth)
-            else:
-                row.append('-')
+            row.append(addr_class(link.owning_addr))
+            row.append(addr_text(link.owning_addr))
             rows.append(row)
 
         qdw_table(rows, heads=hdr, caption="Router Links")
-        print '<hr width="85%"><p />'
-
-
-class NodePage:
-    def __init__(self, router, form):
-        self.router = router
-        self.form   = form
-
-    def display(self):
-        qdw_title("Qpid Dispatch Router in Docker - Nodes Page")
-        qdw_menu()
-
-        hdr = []
-        hdr.append(Header("router-id"))
-        hdr.append(Header("next-hop"))
-        hdr.append(Header("link"))
-        hdr.append(Header("valid-origins"))
-
-        objects  = self.router.GetObject('org.apache.qpid.dispatch.router.node')
-        attached = self.router.GetObject('org.apache.qpid.dispatch.router')[0]
-
-        nodes = {}
-        for node in objects:
-            nodes[node.name] = node
-            node.addr = addr_text(node.addr)
-
-        rows = []
-        rows.append([attached.name, '-', '(self)', ''])
-        for node in objects:
-            row = []
-            row.append(node.addr)
-            if node.nextHop != None:
-                row.append(nodes[node.nextHop].addr)
-            else:
-                row.append('-')
-            if node.routerLink != None:
-                row.append(node.routerLink)
-            else:
-                row.append('-')
-            vo = None
-            for i in node.validOrigins:
-                if not vo:
-                    vo = ""
-                else:
-                    vo += ", "
-                vo += nodes[i].addr
-            row.append(vo)
-            rows.append(row)
-        title = "Router Nodes"
-        sort = Sorter(hdr, rows, 'router-id')
-        dispRows = sort.getSorted()
-        qdw_table(dispRows, heads=hdr, caption="Router Nodes")
         print '<hr width="85%"><p />'
 
 
@@ -300,7 +228,6 @@ class AddressPage:
         hdr = []
         hdr.append(Header("class"))
         hdr.append(Header("address"))
-        hdr.append(Header("phase"))
         hdr.append(Header("in-proc", Header.Y))
         hdr.append(Header("local", Header.COMMAS))
         hdr.append(Header("remote", Header.COMMAS))
@@ -315,17 +242,16 @@ class AddressPage:
 
         for addr in data:
             row = []
-            row.append(addr_class(addr.name))
-            row.append(addr_text(addr.name))
-            row.append(addr_phase(addr.name))
-            row.append(addr.inProcess)
-            row.append(addr.subscriberCount)
-            row.append(addr.remoteCount)
-            row.append(addr.deliveriesIngress)
-            row.append(addr.deliveriesEgress)
-            row.append(addr.deliveriesTransit)
-            row.append(addr.deliveriesToContainer)
-            row.append(addr.deliveriesFromContainer)
+            row.append(addr_class(addr.addr))
+            row.append(addr_text(addr.addr))
+            row.append(addr.in_process)
+            row.append(addr.subscriber_count)
+            row.append(addr.remote_count)
+            row.append(addr.deliveries_ingress)
+            row.append(addr.deliveries_egress)
+            row.append(addr.deliveries_transit)
+            row.append(addr.deliveries_to_container)
+            row.append(addr.deliveries_from_container)
             rows.append(row)
         title = "Router Addresses"
         sorter = Sorter(hdr, rows, 'address', 0, True)
@@ -626,12 +552,10 @@ class Sorter:
 
 
 class AmqpEntity(object):
-    def __init__(self, types, values):
-        if len(types) != len(values):
-            raise Exception("Mismatched types and values for entity")
+    def __init__(self, values):
         self.values = {}
-        for idx in range(len(types)):
-            self.values[types[idx]] = values[idx]
+        for k,v in values.items():
+            self.values[k.replace('-', '_')] = v
 
     def __getattr__(self, attr):
         if attr in self.values:
@@ -654,7 +578,7 @@ class BusManager:
         if router:
             self.address = "amqp:/_topo/0/%s/$management" % router
         else:
-            self.address = "amqp:/$management"
+            self.address = "amqp:/_local/$management"
         self.subscription = self.M.subscribe("amqp:/#")
         self.reply = self.subscription.address
 
@@ -668,7 +592,7 @@ class BusManager:
         request.address = self.address
         request.reply_to = self.reply
         request.correlation_id = 1
-        request.properties = {u'operation':u'QUERY', u'entityType':cls}
+        request.properties = {u'operation':u'GET', u'type':cls}
         request.body = {'attributeNames': []}
 
         self.M.put(request)
@@ -676,14 +600,13 @@ class BusManager:
         self.M.recv()
         self.M.get(response)
 
-        if response.properties['statusCode'] != 200:
-            raise Exception("Agent reports: %d %s" % (response.properties['statusCode'], response.properties['statusDescription']))
+        if response.properties['status-code'] != 200:
+            raise Exception("Agent reports: %d %s" % (response.properties['status-code'], response.properties['status-description']))
 
         entities = []
-        anames = response.body['attributeNames']
-        results = response.body['results']
+        results = response.body
         for e in results:
-            entities.append(AmqpEntity(anames, e))
+            entities.append(AmqpEntity(e))
 
         return entities
 
@@ -706,8 +629,6 @@ if 'view' in form:
     page = ConnPage(router, form)
   elif view == 'LINK':
     page = LinkPage(router, form)
-  elif view == 'NODE':
-    page = NodePage(router, form)
   elif view == 'ADDRESS':
     page = AddressPage(router, form)
   elif view == 'MEMORY':
