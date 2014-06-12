@@ -24,12 +24,10 @@ RUN yum -y install httpd python-qpid-proton qpid-dispatch-router
 RUN sed -i -e 's/#ServerName www.example.com:80/ServerName 0.0.0.0:80/' /etc/httpd/conf/httpd.conf
 RUN sed -i -e 's/# Redirect permanent \/foo http:\/\/www.example.com\/bar/Redirect permanent \/index.html \/cgi-bin\/qdweb.py/' /etc/httpd/conf/httpd.conf
 ADD start.sh /start.sh
+#RUN chmod +x /start.sh
 ADD feather.png /var/www/html/feather.png
-RUN chmod +x /start.sh
 ADD qdweb.css /var/www/html/css/qdweb.css
 ADD qdweb.py /var/www/cgi-bin/qdweb.py
-RUN chmod +x /var/www/cgi-bin/qdweb.py
-EXPOSE 5672
-EXPOSE 80
+EXPOSE 5672 80
 CMD /start.sh
 
