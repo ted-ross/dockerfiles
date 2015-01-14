@@ -28,11 +28,12 @@ ADD qpid-dispatch-router-0.3-1.fc21.x86_64.rpm  /demo/rpms/qpid-dispatch-router-
 ADD qpid-dispatch-tools-0.3-1.fc21.x86_64.rpm  /demo/rpms/qpid-dispatch-tools-0.3-1.fc21.x86_64.rpm
 RUN rpm -i  /demo/rpms/*.rpm
 RUN mkdir /demo/configs
-ADD hub.conf /demo/configs/hub.conf
+RUN mkdir /demo/logs
+ADD setup.sh /demo/setup.sh
 ADD capsule1.conf /demo/configs/capsule1.conf
 ADD capsule2.conf /demo/configs/capsule2.conf
 ADD capsule3.conf /demo/configs/capsule3.conf
 ADD capsule4.conf /demo/configs/capsule4.conf
-ADD setup.sh /demo/setup.sh
+ADD hub.conf /demo/configs/hub.conf
 ADD listen.py /demo/listen.py
 ADD send.py /demo/send.py
