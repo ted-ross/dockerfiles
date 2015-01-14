@@ -27,7 +27,7 @@ qpidd --daemon -p 11000
 ##
 ## Configure the broker
 ##
-qpid-config -b 0.0.0.0:11000 add queue queue/dest.1
+qpid-config -b 0.0.0.0:11000 add queue queue.dest.1
 
 ##
 ## Start the routers
