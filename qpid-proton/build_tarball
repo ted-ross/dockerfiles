@@ -1,0 +1,15 @@
+#!/usr/bin/bash
+
+BASE=`dirname $0`
+ABS_BASE=`cd $BASE && pwd`
+WORKING=`pwd`
+OUTDIR=${2:-$ABS_BASE}
+
+wget ${1:-http://archive.apache.org/dist/qpid/proton/0.22.0/qpid-proton-0.22.0.tar.gz} -O qpid-proton.tar.gz
+
+mkdir qpid-proton-src build staging
+tar -zxf qpid-proton.tar.gz -C qpid-proton-src --strip-components 1
+cd build
+cmake -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_CPP=OFF -DBUILD_PERL=OFF -DBUILD_RUBY=OFF -DBUILD_JAVA=OFF -DBUILD_GO=OFF -DBUILD_JAVASCRIPT=OFF -DBUILD_PHP=OFF -DSYSINSTALL_PYTHON=ON ../qpid-proton-src && make && make DESTDIR=$WORKING/staging/ install && tar -z -C $WORKING/staging/ -cf $OUTDIR/qpid-proton-binary.tar.gz usr
+
+

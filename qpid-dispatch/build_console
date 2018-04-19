@@ -1,0 +1,24 @@
+#!/usr/bin/bash
+
+BASE=`dirname $0`
+ABS_BASE=`cd $BASE && pwd`
+WORKING=`pwd`
+OUTDIR=${3:-$ABS_BASE}
+
+wget ${1:-http://github.com/apache/qpid-dispatch/archive/master.tar.gz} -O qpid-dispatch.tar.gz
+
+mkdir console_staging qpid-dispatch-src
+tar -zxf qpid-dispatch.tar.gz -C qpid-dispatch-src --strip-components 1
+if [ -f "$PATCH_FILE" ]; then
+    echo "patching with $PATCH_FILE"
+    patch -d qpid-dispatch-src -p1 < "$PATCH_FILE"
+fi;
+
+pushd console_staging
+mkdir stand-alone
+cd stand-alone
+cp -r $WORKING/qpid-dispatch-src/console/stand-alone/* .
+npm install
+popd
+
+tar -z -C $WORKING/console_staging/ -cf $OUTDIR/console-binary.tar.gz stand-alone

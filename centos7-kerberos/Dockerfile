@@ -1,5 +1,3 @@
-#!/bin/sh
-
 ##
 ## Licensed to the Apache Software Foundation (ASF) under one
 ## or more contributor license agreements.  See the NOTICE file
@@ -19,19 +17,12 @@
 ## under the License.
 ##
 
-##
-## Start the web server
-##
-httpd
-
-##
-## Start the AMQP router
-##
-qdrouterd &
-
-##
-## Tail the web server logs until we're shut down
-##
-tail -f /var/log/httpd/*
-
+FROM centos:centos7
+MAINTAINER Ted Ross <tross@apache.org>
+RUN yum -y update
+RUN yum -y install wget tar make cmake gcc python-devel swig libuuid-devel cyrus-sasl-gssapi krb5-server krb5-workstation
+ADD krb5.conf /etc/krb5.conf
+ADD kdc.conf /var/kerberos/krb5kdc/kdc.conf
+ADD kadm5.acl /var/kerberos/krb5kdc/kadm5.acl
+CMD bash
 
